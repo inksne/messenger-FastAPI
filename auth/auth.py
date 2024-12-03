@@ -1,14 +1,17 @@
 from fastapi import APIRouter, Depends, Response
 from fastapi.security import HTTPBearer
+from starlette import status
+
 from auth.helpers import create_access_token, create_refresh_token
 from auth.validation import (
-    get_current_token_payload,
+    get_current_access_token_payload,
     get_current_auth_user_for_refresh,
     get_current_active_auth_user,
     validate_auth_user_db
 )
-from pydantic import BaseModel
 from database.models import User
+
+from pydantic import BaseModel
 from datetime import timedelta
 
 http_bearer = HTTPBearer(auto_error=False)
@@ -27,8 +30,8 @@ async def auth_user_issue_jwt(response: Response, user: User = Depends(validate_
     access_token = create_access_token(user)
     refresh_token = create_refresh_token(user)
     
-    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, max_age=timedelta(hours=2))
-    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, max_age=timedelta(days=30))  # опционально
+    response.set_cookie(key="access_token", value=access_token, httponly=True, secure=False, max_age=timedelta(minutes=5))
+    response.set_cookie(key="refresh_token", value=refresh_token, httponly=True, secure=False, max_age=timedelta(days=14))
     
     return TokenInfo(access_token=access_token, refresh_token=refresh_token)
 
@@ -41,7 +44,7 @@ async def auth_refresh_jwt(user: User = Depends(get_current_auth_user_for_refres
 
 @router.get('/users/me/')
 async def auth_user_check_self_info(
-    payload: dict = Depends(get_current_token_payload), 
+    payload: dict = Depends(get_current_access_token_payload), 
     user: User = Depends(get_current_active_auth_user),
 ):
     iat = payload.get("iat")
@@ -57,3 +60,5 @@ async def logout(response: Response):
     
     response.delete_cookie(key="access_token", httponly=True, secure=False, samesite="Lax")
     response.delete_cookie(key="refresh_token", httponly=True, secure=False, samesite="Lax")
+
+    return {'detail': 'Успешный выход'}
