@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .container {
+        width: 90%;
+        margin: 0 auto;
+        padding: 20px;
+        margin-top: 60px;
+    }
+
+    .content-container {
+        background-color: rgba(33, 37, 36, 0.3);
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+        text-align: center;
+        color: #f1f1f1;
+    }
+
+    p {
+        font-size: 18px;
+        line-height: 1.6;
+        color: #ddd;
+        margin-bottom: 20px;
+    }
+</style>
+<div class="container">
+    <div class="content-container">
+        <h1>О нас</h1>
+        <h2>Контакты</h2>
+        <p>Если у вас есть вопросы или предложения, не стесняйтесь связаться со мной:</p>
+        <p>Email: <a href="mailto:debanyj23@gmail.com" style="color: #88f7ff;">debanyj23@gmail.com</a></p>
+        <p>Код сайта лежит на гитхабе и на гитлабе (если я его не удалил)</p>
+        <p>GitHub: <a href="https://github.com/inksne" style="color:#88f7ff">https://github.com/inksne</a></p>
+        <p>GitLab: <a href="https://gitlab.com/inksne" style="color:#88f7ff">https://gitlab.com/inksne</a></p>
+    </div>
+</div>
+{% endblock %}
