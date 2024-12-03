@@ -1,16 +1,17 @@
-from dotenv import load_dotenv
-import os
+from dotenv import load_dotenv, dotenv_values
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings
 from pathlib import Path
 
 load_dotenv()
+config = dotenv_values('.env') #изменить на .test.env для тестирования
 
-DB_HOST = os.getenv("DB_HOST")
-DB_PORT = os.getenv("DB_PORT")
-DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
-DB_NAME = os.getenv("DB_NAME")
+DB_HOST = config.get("DB_HOST")
+DB_PORT = config.get("DB_PORT")
+DB_USER = config.get("DB_USER")
+DB_PASS = config.get("DB_PASS")
+DB_NAME = config.get("DB_NAME")
+MODE = config.get("MODE")
 
 
 class AuthJWT(BaseModel):
