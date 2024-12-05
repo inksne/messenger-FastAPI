@@ -19,7 +19,7 @@ def get_current_access_token_payload(request: Request) -> dict:
     '''получение access токена'''
     token = request.cookies.get("access_token")
     if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Токен не найден в куки.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access Токен не найден в куки.")
     
     try:
         payload = decode_jwt(token=token)
@@ -33,7 +33,7 @@ def get_current_refresh_token_payload(request: Request) -> dict:
     '''получение refresh токена'''
     token = request.cookies.get("refresh_token")
     if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Токен не найден в куки.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh Токен не найден в куки.")
     
     try:
         payload = decode_jwt(token=token)
