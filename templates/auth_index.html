@@ -1,0 +1,56 @@
+{% extends "authenticated.html" %}
+
+<title>{{ title }}</title>
+
+{% block styles %}
+    {{ super() }}
+    <style>
+        .chat-list {
+            padding: 20px;
+            margin: 20px;
+            background-color: rgba(33, 37, 36, 0);
+            border: 2px solid #888;
+            border-radius: 8px;
+            max-width: 80%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .chat-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: rgba(33, 37, 36, 0);
+            border: 2px solid #888;
+            border-radius: 5px;
+        }
+        .chat-item:hover {
+            background-color: rgba(33, 37, 36, 0);
+            border: 2px solid #888;
+        }
+    </style>
+{% endblock %}
+
+
+{% block content %}
+    <div id="content">
+        {% if chats %}
+        <div class="chat-list">
+            <h2>Ваши чаты</h2>
+            {% for chat in chats %}
+            <div class="chat-item">
+                <p>Название: {{ chat.name }}</p>
+                <p>Создано: {{ chat.created_at }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="chat-list">
+            <h2>У вас нет активных чатов.</h2>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+
+{% block scrypts %}
+    {{ super() }}
+{% endblock %}

@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
+<link rel="favicon" type="image/x-icon" href="/static/favicon.ico">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     {% block styles %}
         <style>
-            body, html {
+            body {
                 margin: 0;
                 padding: 0;
                 overflow: hidden;
@@ -33,7 +34,7 @@
                 position: fixed;
                 top: 0;
                 width: 100%;
-                z-index: 5;
+                z-index: 1;
             }
 
             li {
@@ -54,7 +55,7 @@
 
             #content {
                 position: relative;
-                z-index: 10; 
+                z-index: 0; 
                 padding-top: 60px;
             }
         </style>
@@ -66,66 +67,70 @@
     </ul>
 </head>
 <body>
-<canvas id="spaceCanvas"></canvas>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
 
-{% block scripts %}
-<script>
-    const canvas = document.getElementById('spaceCanvas');
-    const ctx = canvas.getContext('2d');
+    <canvas id="spaceCanvas"></canvas>
 
-    // установка размеров canvas под размеры окна
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    {% block scripts %}
+    <script>
+        const canvas = document.getElementById('spaceCanvas');
+        const ctx = canvas.getContext('2d');
 
-    window.addEventListener('resize', () => {
+        // установка размеров canvas под размеры окна
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-    });
 
-    // создание  звезды
-    const particles = Array(200).fill().map(() => ({
-        x: Math.random() * canvas.width, // x
-        y: Math.random() * canvas.height, // y
-        radius: Math.random() * 2 + 1, // размер звезды
-        vx: Math.random() * 0.5 - 0.25, // скорость по x
-        vy: Math.random() * 0.5 - 0.25, // скорость по y
-        opacity: Math.random(), // начальная прозрачность
-        opacityDelta: Math.random() * 0.02 - 0.01 // скорость изменения прозрачности
-    }));
-
-    // анимация
-    function animate() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        particles.forEach(p => {
-            // обновление координат
-            p.x += p.vx;
-            p.y += p.vy;
-
-            // перенос звезд на противоположную сторону, если они выходят за границу
-            if (p.x > canvas.width) p.x = 0;
-            if (p.x < 0) p.x = canvas.width;
-            if (p.y > canvas.height) p.y = 0;
-            if (p.y < 0) p.y = canvas.height;
-
-            // обновление прозрачности
-            p.opacity += p.opacityDelta;
-            if (p.opacity <= 0 || p.opacity >= 1) {
-                p.opacityDelta *= -1; // изменение прозрачности
-            }
-
-            // зарисовка звезду
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
-            ctx.fill();
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
         });
 
-        requestAnimationFrame(animate);
-    }
+        // создание  звезды
+        const particles = Array(200).fill().map(() => ({
+            x: Math.random() * canvas.width, // x
+            y: Math.random() * canvas.height, // y
+            radius: Math.random() * 2 + 1, // размер звезды
+            vx: Math.random() * 0.5 - 0.25, // скорость по x
+            vy: Math.random() * 0.5 - 0.25, // скорость по y
+            opacity: Math.random(), // начальная прозрачность
+            opacityDelta: Math.random() * 0.02 - 0.01 // скорость изменения прозрачности
+        }));
 
-    animate();
-</script>
-{% endblock %}
+        // анимация
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                // обновление координат
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // перенос звезд на противоположную сторону, если они выходят за границу
+                if (p.x > canvas.width) p.x = 0;
+                if (p.x < 0) p.x = canvas.width;
+                if (p.y > canvas.height) p.y = 0;
+                if (p.y < 0) p.y = canvas.height;
+
+                // обновление прозрачности
+                p.opacity += p.opacityDelta;
+                if (p.opacity <= 0 || p.opacity >= 1) {
+                    p.opacityDelta *= -1; // изменение прозрачности
+                }
+
+                // зарисовка звезду
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+    {% endblock %}
 </body>
 </html>

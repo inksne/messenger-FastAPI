@@ -1,0 +1,152 @@
+{% extends "authenticated.html" %}
+
+<title>{{ title }}</title>
+
+{% block styles %}
+    {{ super() }}
+    <style>
+        input, textarea {
+            width: 98%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: rgba(33, 37, 36, 0);
+            color: white;
+            border: 2px solid #888
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .error {
+            color: red;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #888;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #999;
+        }
+
+        .container {
+            width: 70%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-container {
+            background-color: rgba(33, 37, 36, 0);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 50px;
+        }
+
+        .result-container {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: rgba(50, 50, 50, 0);
+            border-radius: 8px;
+            border: 2px solid #888; 
+        }
+
+        .user-card {
+            padding: 10px;
+            border-bottom: 1px solid #666;
+        }
+
+        .user-card:last-child {
+            border-bottom: none;
+        }
+
+        .username {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .email {
+            font-size: 14px;
+            color: #bbb;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 style="text-align: center;">Поиск по имени</h2>
+    <div class="form-container">
+        <form id="searchForm" method="post" action="">
+            <label for="companion_name">Имя пользователя:</label>
+            <input type="text" id="companion_name" name="companion_name" value="{{ query }}" required>
+            <button type="button" id="searchButton">Поиск</button>
+            <div class="error" id="errorMessage"></div>
+        </form>
+    </div>
+    <div class="result-container" id="resultContainer">
+        <!-- Результаты будут добавляться сюда через JavaScript -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        document.getElementById('searchButton').addEventListener('click', async () => {
+            const companionName = document.getElementById('companion_name').value.trim();
+            const resultContainer = document.getElementById('resultContainer');
+            const errorMessage = document.getElementById('errorMessage');
+
+            resultContainer.innerHTML = ''; // Очистка результатов
+            errorMessage.textContent = ''; // Очистка ошибок
+
+            if (!companionName) {
+                errorMessage.textContent = 'Введите имя для поиска.';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/authenticated/search/${companionName}`, {
+                    method: 'POST', // Изменен метод запроса на POST
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({}), // Тело запроса, даже если пустое
+                });
+
+                if (response.ok) {
+                    const users = await response.json();
+
+                    if (users.length === 0) {
+                        resultContainer.innerHTML = '<p>Пользователи не найдены.</p>';
+                        return;
+                    }
+
+                    users.forEach(user => {
+                        const userCard = document.createElement('div');
+                        userCard.className = 'user-card';
+                        userCard.innerHTML = `
+                            <div class="username">${user.username}</div>
+                            <div class="email">${user.email || 'Email не указан'}</div>
+                        `;
+                        resultContainer.appendChild(userCard);
+                    });
+                } else {
+                    const error = await response.json();
+                    errorMessage.textContent = error.detail || 'Произошла ошибка при выполнении поиска.';
+                }
+            } catch (err) {
+                console.error('Ошибка:', err);
+                errorMessage.textContent = 'Не удалось выполнить запрос. Проверьте соединение с сервером.';
+            }
+        });
+    </script>
+{% endblock %}

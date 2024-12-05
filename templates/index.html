@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+<title>{{ title }}</title>
+
+{% block styles %}
+    {{ super() }}
+    <style>
+        h2 {
+            padding: 10px;
+            margin-top: 50px;
+            text-align: center;
+        }
+
+        p {
+            text-align: center;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <h2>Приветствуем в нашем мессенджере!</h2>
+    <p>Общайтесь в режиме реального времени с кем угодно и когда угодно!</p>
+    <p>Можете не бояться за свои переписки - они доступны только вам и вашему собеседнику.</p>
+    <p>Ваш мир общения - ваши правила.</p>
+{% endblock %}
+
+{% block scrypts %}
+    {{ super() }}
+{% endblock %}

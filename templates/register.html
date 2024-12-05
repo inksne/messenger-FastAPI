@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+<title>{{ title }}</title>
+
+{% block styles %}
+    {{ super() }}
+    <style>
+        .form-container {
+            background-color: rgba(51, 51, 51, 0); 
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            width: 400px;
+            text-align: center;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); 
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: white;  
+        }
+
+        .input-group {
+            margin: 10px 0;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: white;  
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 93%;
+            padding: 12px;
+            font-size: 14px;
+            margin-top: 9px;
+            border: 1px solid #555;
+            border-radius: 10px;
+            background-color: rgba(33, 37, 36, 0);
+            border: 2px solid #888;
+            color: white;
+        }
+
+        button {
+            background-color: dimgray;
+            color: white;
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="form-container">
+        <h1>Регистрация</h1>
+        <form id="registerForm">
+            <div class="input-group">
+                <label for="username">Имя пользователя:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="input-group">
+                <label for="email">Электронная почта (необязательно):</label>
+                <input type="email" id="email" name="email">
+            </div>
+            <div class="input-group">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit">Зарегистрироваться</button>
+            <div class="error" id="errorMessage"></div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); 
+
+            const formData = new FormData(e.target);
+            const data = {
+                username: formData.get('username'),
+                email: formData.get('email') || null, 
+                password: formData.get('password')
+            };
+
+            try {
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    body: new URLSearchParams(data), 
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    window.location.href = '/jwt/login/';
+                } else {
+                    const errorData = await response.json();
+                    document.getElementById('errorMessage').textContent = errorData.detail || 'Неизвестная ошибка';
+                }
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = 'Ошибка соединения с сервером';
+            }
+        });
+    </script>
+{% endblock %}

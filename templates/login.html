@@ -1,6 +1,132 @@
 {% extends "base.html" %}
 
 <title>{{ title }}</title>
+{% block styles %}
+    {{ super() }} 
+    <style>
+        input[type="text"],
+        input[type="password"] {
+            width: 97%;
+            padding: 10px;
+            margin-top: 7px;
+            border: 1px solid #555;
+            border-radius: 5px;
+            background-color: rgba(33, 37, 36, 0);
+            border: 2px solid #888;
+            color: white;
+        }
 
+        button {
+            padding: 0.8em 2em;
+            background-color: dimgray;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s;
+            margin: 0 auto;
+            display: block;
+        }
+
+        button:hover {
+            background-color: #505050;
+        }
+
+        button:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .register-link p {
+            margin-top: 1em;
+            color: #ccc;
+        }
+
+        .register-link a {
+            color: #00bcd4;
+             text-decoration: none;
+            font-weight: bold;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 14px;
+            display: none;
+        }
+        .login-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .input-group {
+            margin-bottom: 2em; 
+            text-align: left;
+        }
+    </style>
+{% endblock %}
 {% block content %}
+    <div class="login-container">
+        <h1 style="text-align: center;">Вход</h1>
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Имя пользователя:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div>
+                <button type="submit">Войти</button>
+            </div>
+        </form>
+        <div class="register-link">
+            <p>Нет аккаунта? <a href="/register" style="color: #00bcd4; text-decoration: none;">Зарегистрируйтесь</a></p>
+        </div>
+        <div id="error-message" class="error-message"></div>
+    </div>
+    {% endblock %}
+{% block scripts %}
+    {{ super() }}
+    <script>
+        // Обработчик отправки формы
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+            event.preventDefault(); 
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Создаем объект FormData
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+
+            try {
+                const response = await fetch('/jwt/login/', {
+                    method: 'POST',
+                    body: formData, 
+                    credentials: 'include' 
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    window.location.href = '/authenticated/';
+                } else {
+                    document.getElementById('error-message').textContent = result.detail || 'Ошибка входа';
+                    document.getElementById('error-message').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('error-message').textContent = 'Ошибка при подключении к серверу';
+                document.getElementById('error-message').style.display = 'block';
+            }
+        });
+    </script>
 {% endblock %}
