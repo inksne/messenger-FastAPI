@@ -79,16 +79,15 @@
     const messagesContainer = document.getElementById('messages');
     const messageInput = document.getElementById('message-input');
     const sendButton = document.getElementById('send-button');
-    const chatId = "{{ chat_id }}";  // Передаем идентификатор чата
-    const socket = new WebSocket(`ws://${window.location.host}/authenticated/chat/${chatId}/`);
+    const socket = new WebSocket(`ws://${window.location.host}/authenticated/chat/`);
 
     socket.onopen = () => {
         addSystemMessage('Соединение установлено');
     };
 
     socket.onmessage = (event) => {
-        const message = event.data;
-        addUserMessage(null, message);
+        const message = event.data; // Получаем текст сообщения от сервера
+        addUserMessage(null, message); // Отображаем его в интерфейсе
     };
 
     socket.onclose = () => {
@@ -108,7 +107,7 @@
         const message = messageInput.value.trim();
         if (!message) return;
 
-        socket.send(message);
+        socket.send(message); // Отправляем сообщение как простой текст
         messageInput.value = '';
         addUserMessage('Вы', message);
     }
@@ -118,7 +117,7 @@
         if (username) {
             messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
         } else {
-            messageElement.textContent = message;
+            messageElement.textContent = message; // Если имя пользователя не указано
         }
         messagesContainer.appendChild(messageElement);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;

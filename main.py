@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from starlette import status
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
-from database.models import User, UserChat, Message, user_chat_association
+from database.models import User, UserChat, Message
 from database.database import create_db_and_tables, get_async_session
 from auth.utils import hash_password, decode_jwt_ws
 from auth.auth import router as jwt_router
@@ -160,47 +160,6 @@ manager = ConnectionManager()
 #         manager.disconnect(websocket)
 #         await manager.broadcast(json.dumps({"sender": "Система", "message": f"Пользователь {current_user_name} отключился"}))
 
-
-@app.websocket("/authenticated/chat/{chat_id}/")
-async def websocket_endpoint(
-    websocket: WebSocket,
-    chat_id: int,
-    current_user: User = Depends(get_current_active_auth_user),
-    session: AsyncSession = Depends(get_async_session),
-):
-    # Ищем чат по ID
-    result_chat = await session.execute(
-        select(UserChat).where(UserChat.id == chat_id)
-    )
-    chat = await result_chat.scalar_one_or_none()
-
-    if not chat:
-        # Автоматически создаем чат, если его нет
-        chat = UserChat(participants=[current_user])
-        session.add(chat)
-        await session.commit()
-
-    # Проверяем, является ли пользователь участником чата через явное соединение таблиц
-    result_participants = await session.execute(
-        select(user_chat_association).where(
-            user_chat_association.c.chat_id == chat_id,
-            user_chat_association.c.user_id == current_user.id
-        )
-    )
-
-    # Если участник не найден, закрываем соединение
-    is_participant = await result_participants.scalar_one_or_none()
-    if not is_participant:
-        await websocket.close(code=1008)
-        return
-
-    await websocket.accept()
-    try:
-        while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"{current_user.username}: {data}")
-    except WebSocketDisconnect:
-        pass
 
 
 #роутеры

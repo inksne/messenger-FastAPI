@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect, Cookie, Form
+from fastapi import APIRouter, Request, Depends, HTTPException, Request, WebSocket, WebSocketDisconnect, Cookie
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 from starlette import status
@@ -150,76 +150,23 @@ async def verify_user(access_token: str = Cookie(None)):
         raise HTTPException(status_code=401, detail=f"Ошибка токена: {e}")
 
 
-# @router.get('/authenticated/chat/', response_class=HTMLResponse)
-# async def get_chat_page(request: Request):
-#     return templates.TemplateResponse('chat.html', {'request': request, 'title': 'Чат'})
+@router.get('/authenticated/chat/', response_class=HTMLResponse)
+async def get_chat_page(request: Request):
+    return templates.TemplateResponse('chat.html', {'request': request, 'title': 'Чат'})
 
 
-# @router.websocket("/authenticated/chat/")
-# async def chat_websocket(websocket: WebSocket, access_token: str = Cookie(None)):
-#     try:
-#         user = await verify_user(access_token)
-#         await manager.connect(websocket)
-#         await manager.broadcast(f"Пользователь {user} присоединился к чату.")
+@router.websocket("/authenticated/chat/")
+async def chat_websocket(websocket: WebSocket, access_token: str = Cookie(None)):
+    try:
+        user = await verify_user(access_token)
+        await manager.connect(websocket)
+        await manager.broadcast(f"Пользователь {user} присоединился к чату.")
         
-#         while True:
-#             data = await websocket.receive_text()
-#             await manager.broadcast(f"{user}: {data}")
-#     except WebSocketDisconnect:
-#         manager.disconnect(websocket)
-#         await manager.broadcast(f"Пользователь {user} покинул чат.")
-#     except HTTPException as e:
-#         await websocket.close(code=1008)
-
-
-@router.get("/authenticated/create_chat/", response_class=HTMLResponse)
-async def create_chat_page(request: Request):
-    # Отображение формы для создания чата
-    return templates.TemplateResponse(
-        "create_chat.html", {"request": request, "title": "Создание чата"}
-    )
-
-
-@router.post("/authenticated/create_chat/")
-async def create_chat(
-    request: Request,
-    session: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(get_current_active_auth_user),
-    participants: str = Form(...),  
-):
-    # Преобразуем строку участников в список
-    participant_ids = [int(pid.strip()) for pid in participants.split(",")]
-
-    # Проверяем, существуют ли все указанные пользователи
-    users = await session.execute(select(User).where(User.id.in_(participant_ids)))
-    users = users.scalars().all()
-
-    if len(users) != len(participant_ids):
-        raise HTTPException(status_code=400, detail="Некоторые пользователи не найдены")
-
-    # Создаем чат и добавляем текущего пользователя
-    chat = UserChat(participants=users)
-    chat.participants.append(current_user)
-    session.add(chat)
-    await session.commit()
-
-    return templates.TemplateResponse(
-        "chat_created.html",
-        {"request": request, "title": "Чат создан", "chat_id": chat.id},
-    )
-
-
-@router.get("/authenticated/chat/{chat_id}/", response_class=HTMLResponse)
-async def chat_page(request: Request, chat_id: int, session: AsyncSession = Depends(get_async_session)):
-    # Проверка, существует ли чат
-    chat_exists = await session.execute(
-        select(UserChat).where(UserChat.id == chat_id)
-    )
-    if not chat_exists.scalar_one_or_none():
-        return HTMLResponse(content="Чат не найден", status_code=404)
-
-    # Рендеринг шаблона
-    return templates.TemplateResponse(
-        "chat.html",
-        {"request": request, "title": "Чат", "chat_id": chat_id},
-    )
+        while True:
+            data = await websocket.receive_text()
+            await manager.broadcast(f"{user}: {data}")
+    except WebSocketDisconnect:
+        manager.disconnect(websocket)
+        await manager.broadcast(f"Пользователь {user} покинул чат.")
+    except HTTPException as e:
+        await websocket.close(code=1008)
