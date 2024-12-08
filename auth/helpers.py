@@ -46,8 +46,3 @@ def create_refresh_token(user: UserSchema) -> str:
         token_data=jwt_payload,
         expire_timedelta=timedelta(days=settings.auth_jwt.refresh_token_expire_days)
     )
-
-
-async def get_user_by_username(username: str, db: AsyncSession) -> User | None:
-    result = await db.execute(select(User).where(User.username == username))
-    return result.scalars().first()

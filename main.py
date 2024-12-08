@@ -1,24 +1,26 @@
 from fastapi import Depends, FastAPI, Form, APIRouter, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from starlette import status
-from starlette.websockets import WebSocket
+from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from database.models import User, UserChat, Message
 from database.database import create_db_and_tables, get_async_session
-from auth.utils import hash_password
+from auth.utils import hash_password, decode_jwt_ws
 from auth.auth import router as jwt_router
-from auth.validation import get_current_active_auth_user
-from templates.router import router as base_router
+from auth.validation import get_current_active_auth_user, get_current_access_token_payload
+from templates.router import router as base_router, generate_chat_id
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 from datetime import datetime
-import logging
 from datetime import datetime
+import logging
+import json
 
 
 logger = logging.Logger(__name__)
@@ -42,6 +44,7 @@ class UserResponse(BaseModel):
     email: Optional[str] = None
     username: str
     registered_at: datetime
+
 
 #бд
 @app.on_event("startup")
@@ -85,48 +88,78 @@ async def search(companion_name: str, session: AsyncSession = Depends(get_async_
     return companions
 
 
-# вебсокеты
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: List[WebSocket] = []
 
-@app.websocket('/authenticated/chat/{companion_id}')
-async def chat(
-    websocket: WebSocket,
-      companion_id: int,
-        session: AsyncSession = Depends(get_async_session),
-          current_user: User = Depends(get_current_active_auth_user),
-):
-    await websocket.accept()
-    
-    result_companion = await session.execute(select(User).where(User.id == companion_id))
-    companion = result_companion.scalar_one_or_none()
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.append(websocket)
 
-    if not companion:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail='Пользователь не найден.')
-    
-    result_chat = await session.execute(
-        select(UserChat).filter((
-            UserChat.auth_user == current_user.id) & (UserChat.companion == companion_id)))
-    chat = result_chat.scalar_one_or_none()
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.remove(websocket)
 
-    if not chat:
-        chat = UserChat(auth_user=current_user.id, companion=companion_id, last_message_time=datetime.utcnow())
+    async def send_personal_message(self, message: str, websocket: WebSocket):
+        await websocket.send_text(message)
 
-    session.add(chat)
-    await session.commit()
-    await session.refresh(chat)
+    async def broadcast(self, message: str):
+        for connection in self.active_connections:
+            await connection.send_text(message)
 
-    while True:
-        message_text = await websocket.receive_text()
+manager = ConnectionManager()
 
-        new_message = Message(sender_id=current_user.id, receiver_id=companion_id, content=message_text)
-        session.add(new_message)
-        await session.commit()
-        await session.refresh(new_message)
+# @app.websocket('/authenticated/chat/')
+# async def test_chat(
+#     websocket: WebSocket,
+#     session: AsyncSession = Depends(get_async_session),
+# ):
+#     await websocket.accept()
 
-        chat.last_message_id = new_message.id
-        chat.last_message_time = datetime.utcnow()
-        await session.commit()
+#     token = websocket.cookies.get("access_token")
+#     if not token:
+#         await websocket.close(code=1008)
+#         return
 
-        await websocket.send_text(message_text)
+#     try:
+#         payload = decode_jwt_ws(token)
+#         current_user_name = payload.get("sub")
+#         if not current_user_name:
+#             raise ValueError("Invalid token payload")
+#     except Exception:
+#         await websocket.close(code=1008)
+#         return
+
+#     except Exception as e:
+#         await websocket.send_text(f"Ошибка: Неверный токен ({str(e)}).")
+#         await websocket.close(code=1008)
+#         return
+
+#     # Подключаем пользователя к менеджеру WebSocket
+#     await manager.connect(websocket)
+#     try:
+#         while True:
+#             data = await websocket.receive_text()
+
+#             # Распарсить данные из JSON
+#             try:
+#                 message_data = json.loads(data)
+#                 message_text = message_data.get("message")
+#             except json.JSONDecodeError:
+#                 await websocket.send_text("Ошибка: Неверный формат данных.")
+#                 continue
+
+#             # Формируем сообщение с именем отправителя
+#             formatted_message = json.dumps({
+#                 "sender": current_user_name,
+#                 "message": message_text
+#             })
+
+#             # Отправляем всем подключенным клиентам
+#             await manager.broadcast(formatted_message)
+#     except WebSocketDisconnect:
+#         manager.disconnect(websocket)
+#         await manager.broadcast(json.dumps({"sender": "Система", "message": f"Пользователь {current_user_name} отключился"}))
+
 
 
 #роутеры

@@ -32,6 +32,20 @@ def decode_jwt(
     return decoded
 
 
+def decode_jwt_ws(
+    token: str,
+    public_key: str = settings.auth_jwt.public_key_path.read_text(),
+    algorithm: str = settings.auth_jwt.algorithm,
+):
+    try:
+        return jwt.decode(token, public_key, algorithms=[algorithm])
+    except jwt.ExpiredSignatureError:
+        raise ValueError("Token has expired")
+    except jwt.JWTError:
+        raise ValueError("Invalid token")
+
+
+
 def hash_password(password: str) -> bytes:
     salt = bcrypt.gensalt()
     pwd_bytes: bytes = password.encode('utf-8')

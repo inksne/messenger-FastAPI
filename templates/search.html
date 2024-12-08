@@ -77,6 +77,20 @@
             font-size: 14px;
             color: #bbb;
         }
+
+        .chat-link {
+            display: block;
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #32A852;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .chat-link:hover {
+            background-color: #278c3e;
+        }
     </style>
 {% endblock %}
 
@@ -115,11 +129,11 @@
 
             try {
                 const response = await fetch(`/authenticated/search/${companionName}`, {
-                    method: 'POST', // Изменен метод запроса на POST
+                    method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({}), // Тело запроса, даже если пустое
+                    body: JSON.stringify({}),
                 });
 
                 if (response.ok) {
@@ -136,6 +150,7 @@
                         userCard.innerHTML = `
                             <div class="username">${user.username}</div>
                             <div class="email">${user.email || 'Email не указан'}</div>
+                            <a href="/authenticated/chat/${user.id}" class="chat-link">Перейти в чат</a>
                         `;
                         resultContainer.appendChild(userCard);
                     });

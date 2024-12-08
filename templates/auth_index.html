@@ -29,16 +29,18 @@
     </style>
 {% endblock %}
 
-
 {% block content %}
     <div id="content">
-        {% if chats %}
+        {% if chats_with_companion %}
         <div class="chat-list">
             <h2>Ваши чаты</h2>
-            {% for chat in chats %}
+            {% for item in chats_with_companion %}
             <div class="chat-item">
-                <p>Название: {{ chat.name }}</p>
-                <p>Создано: {{ chat.created_at }}</p>
+                <!-- Передаем chat_id в URL -->
+                <a href="/authenticated/chat/{{ item.chat_id }}">
+                    Чат с {{ item.companion_name }}
+                </a>
+                <p>Последнее сообщение: {{ item.chat.last_message_time }}</p>
             </div>
             {% endfor %}
         </div>
@@ -50,7 +52,6 @@
     </div>
 {% endblock %}
 
-
-{% block scrypts %}
+{% block scripts %}
     {{ super() }}
 {% endblock %}
