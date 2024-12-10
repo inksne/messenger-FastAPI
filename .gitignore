@@ -1,3 +1,6 @@
 .env
 .test.env
 mes_env/
+alembic/
+.pytest_cache/
+__pycache__/
