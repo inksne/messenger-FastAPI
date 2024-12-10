@@ -96,14 +96,12 @@
 {% block scripts %}
     {{ super() }}
     <script>
-        // Обработчик отправки формы
         document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault(); 
 
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            // Создаем объект FormData
             const formData = new FormData();
             formData.append('username', username);
             formData.append('password', password);

@@ -7,24 +7,66 @@
     <style>
         .chat-list {
             padding: 20px;
-            margin: 20px;
-            background-color: rgba(33, 37, 36, 0);
+            margin: 20px auto;
+            background-color: rgba(33, 37, 36, 0.5);
             border: 2px solid #888;
             border-radius: 8px;
             max-width: 80%;
-            margin-left: auto;
-            margin-right: auto;
+            color: white;
         }
+
         .chat-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             padding: 10px;
             margin-bottom: 10px;
-            background-color: rgba(33, 37, 36, 0);
-            border: 2px solid #888;
+            background-color: rgba(50, 50, 50, 0.8);
+            border: 1px solid #666;
             border-radius: 5px;
+            cursor: pointer; 
         }
+
         .chat-item:hover {
-            background-color: rgba(33, 37, 36, 0);
-            border: 2px solid #888;
+            background-color: rgba(70, 70, 70, 0.9);
+        }
+
+        .chat-link {
+            font-size: 18px;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            display: block; 
+            width: 100%;
+        }
+
+        .chat-last-message {
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        .chat-form {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .chat-form input, .chat-form button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #555;
+        }
+
+        .chat-form input {
+            width: 200px;
+            background-color: rgba(33, 37, 36, 0.8);
+            color: white;
+        }
+
+        .chat-form button {
+            color: white;
+            border: none;
+            cursor: pointer;
         }
     </style>
 {% endblock %}
@@ -33,20 +75,21 @@
     <div id="content">
         {% if chats_with_companion %}
         <div class="chat-list">
-            <h2>Ваши чаты</h2>
+            <h2 style="text-align: center;">Ваши чаты</h2>
             {% for item in chats_with_companion %}
             <div class="chat-item">
-                <!-- Передаем chat_id в URL -->
-                <a href="/authenticated/chat/{{ item.chat_id }}">
+                <a class="chat-link" href="/authenticated/chat/{{ item.chat.id }}">
                     Чат с {{ item.companion_name }}
                 </a>
-                <p>Последнее сообщение: {{ item.chat.last_message_time }}</p>
+                <div class="chat-last-message">
+                    Последнее сообщение: {{ item.chat.last_message_time or 'Нет сообщений' }}
+                </div>
             </div>
             {% endfor %}
         </div>
         {% else %}
         <div class="chat-list">
-            <h2>У вас нет активных чатов.</h2>
+            <h2 style="text-align: center;">У вас нет активных чатов.</h2>
         </div>
         {% endif %}
     </div>

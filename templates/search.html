@@ -82,14 +82,14 @@
             display: block;
             margin-top: 10px;
             padding: 8px;
-            background-color: #32A852;
+            background-color: rgba(33, 37, 36, 1);
             color: white;
             text-decoration: none;
             border-radius: 5px;
         }
 
         .chat-link:hover {
-            background-color: #278c3e;
+            background-color: rgba(33, 37, 36, 0.5);
         }
     </style>
 {% endblock %}
@@ -106,7 +106,7 @@
         </form>
     </div>
     <div class="result-container" id="resultContainer">
-        <!-- Результаты будут добавляться сюда через JavaScript -->
+        <!-- сюда будут добавляться результаты с помощью js -->
     </div>
 </div>
 {% endblock %}
@@ -114,13 +114,13 @@
 {% block scripts %}
     {{ super() }}
     <script>
-        document.getElementById('searchButton').addEventListener('click', async () => {
+        async function searchUser() {
             const companionName = document.getElementById('companion_name').value.trim();
             const resultContainer = document.getElementById('resultContainer');
             const errorMessage = document.getElementById('errorMessage');
 
-            resultContainer.innerHTML = ''; // Очистка результатов
-            errorMessage.textContent = ''; // Очистка ошибок
+            resultContainer.innerHTML = ''; 
+            errorMessage.textContent = ''; 
 
             if (!companionName) {
                 errorMessage.textContent = 'Введите имя для поиска.';
@@ -150,9 +150,34 @@
                         userCard.innerHTML = `
                             <div class="username">${user.username}</div>
                             <div class="email">${user.email || 'Email не указан'}</div>
-                            <a href="/authenticated/chat/${user.id}" class="chat-link">Перейти в чат</a>
+                            <button class="chat-link" data-username="${user.username}">Перейти в чат</button>
                         `;
                         resultContainer.appendChild(userCard);
+                    });
+
+                    // обработчик 'перейти в чат'
+                    document.querySelectorAll('.chat-link').forEach(button => {
+                        button.addEventListener('click', async (event) => {
+                            const companionUsername = event.target.getAttribute('data-username');
+                            try {
+                                const response = await fetch('/create_chat/', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ companion_username: companionUsername }),
+                                });
+
+                                const result = await response.json();
+                                if (response.ok) {
+                                    window.location.href = `/authenticated/chat/${result.chat_id}`;
+                                } else {
+                                    console.error('Ошибка:', result.detail || 'Не удалось создать или получить чат');
+                                }
+                            } catch (err) {
+                                console.error('Ошибка:', err);
+                            }
+                        });
                     });
                 } else {
                     const error = await response.json();
@@ -161,6 +186,15 @@
             } catch (err) {
                 console.error('Ошибка:', err);
                 errorMessage.textContent = 'Не удалось выполнить запрос. Проверьте соединение с сервером.';
+            }
+        }
+
+        document.getElementById('searchButton').addEventListener('click', searchUser);
+
+        document.getElementById('companion_name').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); 
+                searchUser(); 
             }
         });
     </script>

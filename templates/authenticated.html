@@ -74,170 +74,170 @@
     <canvas id="spaceCanvas"></canvas>
 
     {% block scripts %}
-    <script>
-        const canvas = document.getElementById('spaceCanvas');
-        const ctx = canvas.getContext('2d');
+        <script>
+            const canvas = document.getElementById('spaceCanvas');
+            const ctx = canvas.getContext('2d');
 
-        // установка размеров canvas под размеры окна
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        window.addEventListener('resize', () => {
+            // установка размеров canvas под размеры окна
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-        });
 
-        // создание звезд
-        const particles = Array(200).fill().map(() => ({
-            x: Math.random() * canvas.width, 
-            y: Math.random() * canvas.height,
-            radius: Math.random() * 2 + 1,
-            vx: Math.random() * 0.5 - 0.25,
-            vy: Math.random() * 0.5 - 0.25,
-            opacity: Math.random(),
-            opacityDelta: Math.random() * 0.02 - 0.01 
-        }));
-
-        function animate() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            particles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-
-                if (p.x > canvas.width) p.x = 0;
-                if (p.x < 0) p.x = canvas.width;
-                if (p.y > canvas.height) p.y = 0;
-                if (p.y < 0) p.y = canvas.height;
-
-                p.opacity += p.opacityDelta;
-                if (p.opacity <= 0 || p.opacity >= 1) {
-                    p.opacityDelta *= -1;
-                }
-
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
-                ctx.fill();
+            window.addEventListener('resize', () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
             });
 
-            requestAnimationFrame(animate);
-        }
+            // создание звезд
+            const particles = Array(200).fill().map(() => ({
+                x: Math.random() * canvas.width, 
+                y: Math.random() * canvas.height,
+                radius: Math.random() * 2 + 1,
+                vx: Math.random() * 0.5 - 0.25,
+                vy: Math.random() * 0.5 - 0.25,
+                opacity: Math.random(),
+                opacityDelta: Math.random() * 0.02 - 0.01 
+            }));
 
-        animate();
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // получение куки
-        function getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-            return null;
-        }
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
 
-        // декодирование JWT
-        function decodeJWT(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = JSON.parse(atob(base64));
-                return jsonPayload;
-            } catch (e) {
-                console.error('ошибка декодирования токена:', e);
+                    if (p.x > canvas.width) p.x = 0;
+                    if (p.x < 0) p.x = canvas.width;
+                    if (p.y > canvas.height) p.y = 0;
+                    if (p.y < 0) p.y = canvas.height;
+
+                    p.opacity += p.opacityDelta;
+                    if (p.opacity <= 0 || p.opacity >= 1) {
+                        p.opacityDelta *= -1;
+                    }
+
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(255, 255, 255, ${p.opacity})`;
+                    ctx.fill();
+                });
+
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+
+            // получение куки
+            function getCookie(name) {
+                const value = `; ${document.cookie}`;
+                const parts = value.split(`; ${name}=`);
+                if (parts.length === 2) return parts.pop().split(';').shift();
                 return null;
             }
-        }
 
-        // обновление токена
-        async function refreshToken() {
-            try {
-                console.log("попытка обновления токена...");
-                
-                const response = await fetch('/jwt/refresh/', {
-                    method: 'POST',
-                    credentials: 'include', 
-                });
+            // декодирование JWT
+            function decodeJWT(token) {
+                try {
+                    const base64Url = token.split('.')[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const jsonPayload = JSON.parse(atob(base64));
+                    return jsonPayload;
+                } catch (e) {
+                    console.error('ошибка декодирования токена:', e);
+                    return null;
+                }
+            }
 
-                if (response.ok) {
-                    const data = await response.json();
-                    const newAccessToken = data.access_token;
+            // обновление токена
+            async function refreshToken() {
+                try {
+                    console.log("попытка обновления токена...");
+                    
+                    const response = await fetch('/jwt/refresh/', {
+                        method: 'POST',
+                        credentials: 'include', 
+                    });
 
-                    console.log("токен успешно обновлен:", newAccessToken);
+                    if (response.ok) {
+                        const data = await response.json();
+                        const newAccessToken = data.access_token;
 
-                    document.cookie = `access_token=${newAccessToken}; path=/; samesite=Lax; secure=false;`;
-                    console.log("куки обновлены:", document.cookie);
+                        console.log("токен успешно обновлен:", newAccessToken);
 
-                    startTokenRefreshTimer(newAccessToken);
-                } else {
-                    console.error('ошибка при обновлении токена:', response.status);
+                        document.cookie = `access_token=${newAccessToken}; path=/; samesite=Lax; secure=false;`;
+                        console.log("куки обновлены:", document.cookie);
+
+                        startTokenRefreshTimer(newAccessToken);
+                    } else {
+                        console.error('ошибка при обновлении токена:', response.status);
+                        handleTokenExpiration();
+                    }
+                } catch (error) {
+                    console.error('ошибка при попытке обновления токена:', error);
                     handleTokenExpiration();
                 }
-            } catch (error) {
-                console.error('ошибка при попытке обновления токена:', error);
-                handleTokenExpiration();
-            }
-        }
-
-        function startTokenRefreshTimer(accessToken) {
-            const payload = decodeJWT(accessToken);
-            if (!payload || !payload.exp) {
-                console.warn("ошибка получения времени истечения токена");
-                handleTokenExpiration();
-                return;
             }
 
-            const exp = payload.exp * 1000;
-            const currentTime = Date.now();
-            const delay = exp - currentTime - 30000;
-
-            if (delay > 0) {
-                console.log(`обновление токена запланировано через ${delay / 1000} секунд`);
-                setTimeout(refreshToken, delay);
-            } else {
-                console.warn('токен истёк, требуется авторизация');
-                handleTokenExpiration();
-            }
-        }
-
-        function isTokenExpired(token) {
-            const payload = decodeJWT(token);
-            if (!payload || !payload.exp) return true;
-            const exp = payload.exp * 1000;
-            return Date.now() >= exp;
-        }
-
-        const accessToken = getCookie("access_token");
-        if (accessToken) {
-            if (isTokenExpired(accessToken)) {
-                refreshToken();
-            } else {
-                startTokenRefreshTimer(accessToken);
-            }
-        } else {
-            console.error("Токен отсутствует, требуется авторизация.");
-        }
-
-        function handleTokenExpiration() {
-            alert('Сессия истекла. Выполните вход заново.');
-            logout();
-        }
-
-        async function logout() {
-            try {
-                const response = await fetch('/jwt/logout', {
-                    method: 'POST', 
-                    credentials: 'include',
-                });
-
-                if (response.ok) {
-                    window.location.href = '/'; 
-                } else {
-                    console.error('Ошибка при выходе');
+            function startTokenRefreshTimer(accessToken) {
+                const payload = decodeJWT(accessToken);
+                if (!payload || !payload.exp) {
+                    console.warn("ошибка получения времени истечения токена");
+                    handleTokenExpiration();
+                    return;
                 }
-            } catch (error) {
-                console.error('Ошибка при выходе:', error);
+
+                const exp = payload.exp * 1000;
+                const currentTime = Date.now();
+                const delay = exp - currentTime - 30000;
+
+                if (delay > 0) {
+                    console.log(`обновление токена запланировано через ${delay / 1000} секунд`);
+                    setTimeout(refreshToken, delay);
+                } else {
+                    console.warn('токен истёк, требуется авторизация');
+                    handleTokenExpiration();
+                }
             }
-        }
-    </script>
+
+            function isTokenExpired(token) {
+                const payload = decodeJWT(token);
+                if (!payload || !payload.exp) return true;
+                const exp = payload.exp * 1000;
+                return Date.now() >= exp;
+            }
+
+            const accessToken = getCookie("access_token");
+            if (accessToken) {
+                if (isTokenExpired(accessToken)) {
+                    refreshToken();
+                } else {
+                    startTokenRefreshTimer(accessToken);
+                }
+            } else {
+                console.error("Токен отсутствует, требуется авторизация.");
+            }
+
+            function handleTokenExpiration() {
+                alert('Сессия истекла. Выполните вход заново.');
+                logout();
+            }
+
+            async function logout() {
+                try {
+                    const response = await fetch('/jwt/logout', {
+                        method: 'POST', 
+                        credentials: 'include',
+                    });
+
+                    if (response.ok) {
+                        window.location.href = '/'; 
+                    } else {
+                        console.error('Ошибка при выходе');
+                    }
+                } catch (error) {
+                    console.error('Ошибка при выходе:', error);
+                }
+            }
+        </script>
     {% endblock %}
 </body>
 </html>

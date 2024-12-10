@@ -48,87 +48,106 @@
         }
 
         #send-button {
+            height: 40px; 
             padding: 5px 15px;
             font-size: 14px;
             color: white;
-            background-color: rgba(16, 25, 23, 0.8);
-            border: none;
+            background-color: rgba(33, 37, 36, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 5px;
             cursor: pointer;
         }
 
         #send-button:hover {
-            background-color: rgba(16, 25, 23, 1);
+            background-color: rgba(33, 37, 36, 1);
+        }
+
+        #load-history-button {
+            margin-top: 10px;
+            padding: 5px 15px;
+            font-size: 14px;
+            color: white;
+            background-color: rgba(33, 37, 36, 0.8);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #load-history-button:hover {
+            background-color: rgba(33, 37, 36, 1);
         }
     </style>
 {% endblock %}
 
 {% block content %}
-<div id="chat-container">
-    <div id="messages"></div>
-    <div id="input-container">
-        <input id="message-input" type="text" placeholder="Введите сообщение..." autocomplete="off">
-        <button id="send-button">Отправить</button>
+    <div id="chat-container">
+        <button id="load-history-button">Загрузить историю чата</button>
+        <div id="messages"></div>
+        <div id="input-container">
+            <input id="message-input" type="text" placeholder="Введите сообщение..." autocomplete="off">
+            <button id="send-button">Отправить</button>
+        </div>
     </div>
-</div>
 {% endblock %}
 
 {% block scripts %}
-{{ super() }}
-<script>
-    const messagesContainer = document.getElementById('messages');
-    const messageInput = document.getElementById('message-input');
-    const sendButton = document.getElementById('send-button');
-    const socket = new WebSocket(`ws://${window.location.host}/authenticated/chat/`);
+    {{ super() }}
+    <script>
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const loadHistoryButton = document.getElementById('load-history-button');
+        const socket = new WebSocket(`ws://${window.location.host}/authenticated/chat/`);
 
-    socket.onopen = () => {
-        addSystemMessage('Соединение установлено');
-    };
+        socket.onmessage = (event) => {
+            const message = event.data; // получение сообщения с бэка
+            addUserMessage(null, message); 
+        };
 
-    socket.onmessage = (event) => {
-        const message = event.data; // Получаем текст сообщения от сервера
-        addUserMessage(null, message); // Отображаем его в интерфейсе
-    };
+        socket.onerror = (error) => {
+            addSystemMessage(`Ошибка: ${error.message}`);
+        };
 
-    socket.onclose = () => {
-        addSystemMessage('Соединение закрыто');
-    };
+        // Слушаем события
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') sendMessage();
+        });
 
-    socket.onerror = (error) => {
-        addSystemMessage(`Ошибка: ${error.message}`);
-    };
+        loadHistoryButton.addEventListener('click', loadHistory);
 
-    sendButton.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') sendMessage();
-    });
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            const chatId = "{{ chat_id }}"; 
 
-    function sendMessage() {
-        const message = messageInput.value.trim();
-        if (!message) return;
+            if (!message) return;
 
-        socket.send(message); // Отправляем сообщение как простой текст
-        messageInput.value = '';
-        addUserMessage('Вы', message);
-    }
-
-    function addUserMessage(username, message) {
-        const messageElement = document.createElement('div');
-        if (username) {
-            messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
-        } else {
-            messageElement.textContent = message; // Если имя пользователя не указано
+            socket.send(JSON.stringify({ action: "send_message", chat_id: chatId, content: message }));
+            messageInput.value = '';
         }
-        messagesContainer.appendChild(messageElement);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
 
-    function addSystemMessage(message) {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('system-message');
-        messageElement.textContent = message;
-        messagesContainer.appendChild(messageElement);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-</script>
+        function loadHistory() {
+            const chatId = "{{ chat_id }}"; 
+            socket.send(JSON.stringify({ action: "load_history", chat_id: chatId }));
+        }
+
+        function addUserMessage(username, message) {
+            const messageElement = document.createElement('div');
+            if (username) {
+                messageElement.innerHTML = `<strong>${username}:</strong> ${message}`;
+            } else {
+                messageElement.textContent = message; 
+            }
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function addSystemMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('system-message');
+            messageElement.textContent = message;
+            messagesContainer.appendChild(messageElement);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    </script>
 {% endblock %}
