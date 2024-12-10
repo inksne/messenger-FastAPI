@@ -1,7 +1,7 @@
 import pytest
 from typing import AsyncGenerator
 from sqlalchemy.future import select
-from database.models import User, Message
+from database.models import User, Message, UserChat
 from database.database import async_session_maker
 from .test_config import MODE
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -117,6 +117,7 @@ async def test_delete_message(setup_test_db):
 
 @pytest.mark.asyncio
 async def test_select_all_users(setup_test_db):
+    '''создание и выборка всех пользователей'''
     async for session in setup_test_db:
         new_user = User(username="testuser", email="testuser@example.com", password="password")
         session.add(new_user)
@@ -131,6 +132,7 @@ async def test_select_all_users(setup_test_db):
 
 @pytest.mark.asyncio
 async def test_select_all_messages(setup_test_db):
+    '''создание и выборка сообщений'''
     async for session in setup_test_db:
         new_user = User(username="testuser", email="testuser@example.com", password="password")
         session.add(new_user)
@@ -145,6 +147,73 @@ async def test_select_all_messages(setup_test_db):
 
         print([message.__dict__ for message in messages])
         assert isinstance(messages, object)
+
+
+@pytest.mark.asyncio
+async def test_json_type(setup_test_db):
+    '''проверка, в каком виде возвращаются данные из таблицы с типом json'''
+    async for session in setup_test_db:
+        assert MODE == 'TEST'
+        new_participants = UserChat(participants={'username': 'username'})
+        session.add(new_participants)
+        await session.commit()
+
+        result = await session.execute(select(UserChat.participants))
+        participants = result.scalar_one_or_none()
+
+        print(participants)
+        assert isinstance(participants, dict)
+
+        result = await session.execute(select(UserChat))
+        chat = result.scalars().first()
+        await session.delete(chat)
+        await session.commit()
+
+
+@pytest.mark.asyncio
+async def test_json_add(setup_test_db):
+    '''проверка получения значения из базы данных по ключу и его сравнение'''
+    async for session in setup_test_db:
+        assert MODE == 'TEST'
+
+        new_participants = UserChat(participants={'username': 'some_name'})
+        session.add(new_participants)
+        await session.commit()
+
+        result = await session.execute(select(UserChat.participants))
+        participants = result.scalar_one_or_none()
+
+        assert 'some_name' == participants['username']
+
+        print(participants['username'])
+        
+        result = await session.execute(select(UserChat))
+        chat = result.scalars().first()
+        await session.delete(chat)
+        await session.commit()
+        
+
+@pytest.mark.asyncio
+async def test_json_keys_values(setup_test_db):
+    '''проверка на правильное получение значения по ключу из бд'''
+    async for session in setup_test_db:
+        assert MODE == 'TEST'
+
+        new_participants = UserChat(participants={'username': 'some_name'})
+        session.add(new_participants)
+        await session.commit()
+
+        result_chat = await session.execute(select(UserChat.participants).where(UserChat.participants == new_participants.participants))
+        chat = result_chat.scalar_one_or_none()
+
+        print(chat)
+
+        assert isinstance(chat, object)
+
+        result = await session.execute(select(UserChat))
+        chat = result.scalars().first()
+        await session.delete(chat)
+        await session.commit()
 
 
 @pytest.mark.asyncio
