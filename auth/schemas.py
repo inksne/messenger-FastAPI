@@ -1,5 +1,4 @@
 from pydantic import BaseModel, EmailStr, ConfigDict, validator
-from datetime import datetime
 from typing import Optional
 
 
@@ -21,6 +20,6 @@ class UserSchema(BaseModel):
     
     @validator('email', pre=True, always=True)
     def check_email(cls, v):
-        if v in [None, '', 'null'] or '@' not in v:
+        if v in [None, '', 'null'] or '@.' not in v:
             return None
         return v

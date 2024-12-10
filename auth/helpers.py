@@ -1,11 +1,7 @@
 from auth.schemas import UserSchema
-from database.models import User
 from auth.utils import encode_jwt
 from config import settings
 from datetime import timedelta
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-
 
 
 TOKEN_TYPE_FIELD = "type"

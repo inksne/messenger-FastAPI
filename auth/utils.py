@@ -40,9 +40,9 @@ def decode_jwt_ws(
     try:
         return jwt.decode(token, public_key, algorithms=[algorithm])
     except jwt.ExpiredSignatureError:
-        raise ValueError("Token has expired")
+        raise ValueError("Токен просрочен")
     except jwt.JWTError:
-        raise ValueError("Invalid token")
+        raise ValueError("Невалидный токен")
 
 
 

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, Response
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
-from starlette import status
 
 from auth.helpers import create_access_token, create_refresh_token
 from auth.validation import (
