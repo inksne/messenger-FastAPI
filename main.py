@@ -19,7 +19,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 
-PORT = int(PORT)
+PORT = 10000
 
 
 app = FastAPI(title='messenger')
