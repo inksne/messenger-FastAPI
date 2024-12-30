@@ -43,22 +43,22 @@ async def get_companion_by_id(companion_id: int, session: AsyncSession) -> User:
 
 @router.get('/', response_class=HTMLResponse)
 async def get_base_page(request: Request):
-    return templates.TemplateResponse('index.html', {'request': request, 'title': 'Добро пожаловать!'})
+    return templates.TemplateResponse(request, 'index.html', {'title': 'Добро пожаловать!'})
 
 
 @router.get('/jwt/login/', response_class=HTMLResponse)
 async def get_login_page(request: Request):
-    return templates.TemplateResponse('login.html', {'request': request, 'title': 'Логин'})
+    return templates.TemplateResponse(request, 'login.html', {'title': 'Логин'})
 
 
 @router.get('/register', response_class=HTMLResponse)
 async def get_register_page(request: Request):
-    return templates.TemplateResponse('register.html', {'request': request, 'title': 'Регистрация'})
+    return templates.TemplateResponse(request, 'register.html', {'title': 'Регистрация'})
 
 
 @router.get('/about_us', response_class=HTMLResponse)
 async def get_about_us_page(request: Request):
-    return templates.TemplateResponse('about_us.html', {'request': request, 'title': 'О нас'})
+    return templates.TemplateResponse(request, 'about_us.html', {'title': 'О нас'})
 
 
 @router.post('/create_chat/')
@@ -75,7 +75,7 @@ async def create_chat(
     ).scalar_one_or_none()
     
     if not companion_user:
-        return templates.TemplateResponse('404.html', {'request': request, 'title': 'Пользователь не найден'})
+        return templates.TemplateResponse(request, '404.html', {'title': 'Пользователь не найден'})
     
     existing_chat = (
         await session.execute(
@@ -99,7 +99,7 @@ async def create_chat(
     await session.commit()
     await session.refresh(new_chat)
 
-    return {"message": "Chat created", "chat_id": new_chat.id}
+    return {"message": "Чат создан", "chat_id": new_chat.id}
 
 
 @router.get('/authenticated/', response_class=HTMLResponse)
@@ -140,8 +140,7 @@ async def get_authenticated_page(
         companion_name = companion_user.username if companion_user else "Аноним"
         chats_with_companion.append({'chat': chat, 'companion_name': companion_name})
 
-    return templates.TemplateResponse('auth_index.html', {
-        'request': request,
+    return templates.TemplateResponse(request, 'auth_index.html', {
         'title': 'Главная',
         'chats_with_companion': chats_with_companion,
         'current_user': current_user,
@@ -162,8 +161,7 @@ async def get_search_page(
         result = await session.execute(select(User).where(User.username.ilike(f"%{query}%")))
         users = result.scalars().all()
     
-    return templates.TemplateResponse('search.html', {
-        'request': request,
+    return templates.TemplateResponse(request, 'search.html', {
         'title': 'Поиск',
         'current_user': current_user,
         'users': users,  
@@ -218,18 +216,17 @@ async def get_chat_page(
     chat = chat.scalar_one_or_none()
 
     if not chat:
-        return templates.TemplateResponse('404.html', {'request': request, 'title': 'Пользователь не найден'})
+        return templates.TemplateResponse(request, '404.html', {'title': 'Пользователь не найден'})
 
     participants = chat.participants
     if current_user.username not in [participants["auth_user"], participants["companion"]]:
-        return templates.TemplateResponse('403.html', {'request': request, 'title': 'Недостаточно прав'})
+        return templates.TemplateResponse(request, '403.html', {'title': 'Недостаточно прав'})
 
     companion_username = (
         participants["companion"] if participants["auth_user"] == current_user.username else participants["auth_user"]
     )
 
-    return templates.TemplateResponse('chat.html', {
-        'request': request,
+    return templates.TemplateResponse(request, 'chat.html', {
         'title': f'Чат с {companion_username}',
         'chat_id': chat_id,
         'companion_username': companion_username,
