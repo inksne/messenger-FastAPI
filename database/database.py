@@ -1,9 +1,6 @@
 from typing import AsyncGenerator
 
-from contextlib import asynccontextmanager
-
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-
 
 from config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
 from .models import Base
