@@ -11,6 +11,14 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest 
+
+    env:
+      DB_HOST: ${{ secrets.DB_HOST }}
+      DB_PORT: ${{ secrets.DB_PORT }}
+      DB_USER: ${{ secrets.DB_USER }}
+      DB_PASS: ${{ secrets.DB_PASS }}
+      DB_NAME: ${{ secrets.DB_NAME }}
+      PORT: ${{ secrets.PORT }}
     
     steps:
       - name: Check out repository
@@ -46,8 +54,13 @@ jobs:
           docker pull inksne/mes-back-image:latest
 
       - name: Run tests
-        run: |
-          docker run --rm inksne/mes-back-image pytest -v -s
+        run: docker run \
+          -e DB_HOST=${{ secrets.DB_HOST }} \
+          -e DB_NAME=${{ secrets.DB_NAME }} \
+          -e DB_PORT=${{ secrets.DB_PORT }} \
+          -e DB_USER=${{ secrets.DB_USER }} \
+          -e DB_PASS=${{ secrets.DB_PASS }} \
+          --rm inksne/mes-back-image pytest -v -s
 
   # deploy:
   #   runs-on: ubuntu-latest
