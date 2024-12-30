@@ -11,6 +11,7 @@ DB_PORT = config.get("DB_PORT")
 DB_USER = config.get("DB_USER")
 DB_PASS = config.get("DB_PASS")
 DB_NAME = config.get("DB_NAME")
+PORT=config.get("PORT")
 MODE = config.get("MODE")
 
 
