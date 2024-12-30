@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-# from tests.test_config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER # для тестов
+
 from config import DB_HOST, DB_NAME, DB_PASS, DB_PORT, DB_USER
 from .models import Base
 
@@ -19,8 +19,7 @@ async def create_db_and_tables():
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-# декоратор только для pytest
-# @asynccontextmanager  
+
 async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_maker() as session:
         yield session
