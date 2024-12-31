@@ -8,11 +8,11 @@ config = dotenv_values('.env')
 
 DB_HOST = config.get("DB_HOST", "localhost")
 DB_PORT = config.get("DB_PORT", "5432")
-DB_USER = config.get("DB_USER", 'inksne')
-DB_PASS = config.get("DB_PASS", 'asdf1zxc4')
-DB_NAME = config.get("DB_NAME", 'messenger')
+DB_USER = config.get("DB_USER")
+DB_PASS = config.get("DB_PASS")
+DB_NAME = config.get("DB_NAME")
 PORT=config.get("PORT", "10000")
-MODE = config.get("MODE", 'DEV')
+MODE = config.get("MODE")
 
 
 class AuthJWT(BaseModel):
