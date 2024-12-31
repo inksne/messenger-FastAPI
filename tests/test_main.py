@@ -26,10 +26,21 @@ def test_read_login_page():
     assert response.status_code == 200
 
 
-def test_search_user():
-    companion_name = "inksne"
-    response = client.post(f"/authenticated/search/{companion_name}")
-
+def test_login():
+    username = "inksne"
+    password = "ink"
+    response = client.post(
+        "/jwt/login/",
+        data={"username": username, "password": password}
+    )
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
-    assert len(response.json()) > 0
+
+    cookies = response.cookies
+    access_token = cookies.get("access_token")
+    refresh_token = cookies.get("refresh_token")
+
+    assert access_token is not None
+    assert refresh_token is not None
+
+    assert len(access_token) > 0
+    assert len(refresh_token) > 0
