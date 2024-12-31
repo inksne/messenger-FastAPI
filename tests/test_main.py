@@ -24,3 +24,12 @@ def test_read_register_page():
 def test_read_login_page():
     response = client.get('/jwt/login')
     assert response.status_code == 200
+
+
+def test_search_user():
+    companion_name = "inksne"
+    response = client.post(f"/authenticated/search/{companion_name}")
+
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+    assert len(response.json()) > 0
