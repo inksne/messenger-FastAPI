@@ -9,7 +9,6 @@ from database.database import create_db_and_tables, get_async_session
 from auth.utils import hash_password
 from auth.auth import router as jwt_router
 from templates.router import router as base_router
-from config import PORT
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -17,9 +16,6 @@ from sqlalchemy.future import select
 from typing import Optional
 from pydantic import BaseModel
 from datetime import datetime
-
-
-PORT = 10000
 
 
 app = FastAPI(title='messenger')
